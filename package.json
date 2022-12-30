@@ -1,0 +1,19 @@
+{
+  "name": "nomadcoder",
+  "version": "1.0.0",
+  "description": "the best way to watch video",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bizbaeja/NomadCoder.git"
+  },
+  "author": "bizbaeja",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bizbaeja/NomadCoder/issues"
+  },
+  "homepage": "https://github.com/bizbaeja/NomadCoder#readme"
+}
