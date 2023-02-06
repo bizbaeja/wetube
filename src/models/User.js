@@ -5,7 +5,7 @@
 //3. modelName = mongoose.model("model",schemafuncion)
 //4. export default modelName;
 //5. init.js 에서 modelName 을 import 하기
-import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("save", async function () {
   console.log("users password:", this.password);
-  this.password = await bcrypt.hash(this.password, 5);
+  this.password = await bcryptjs.hash(this.password, 5);
   console.log("hashed password:", this.password);
 });
 //this는 create 되는 User 를 가리킨다.
