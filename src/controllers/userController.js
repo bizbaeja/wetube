@@ -1,22 +1,22 @@
 import User from "../models/User";
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcrypt";
+import fetch from "cross-fetch";
 
 export const getJoin = (req, res) => res.render("join", { pageTitle: "Join" });
 export const postJoin = async (req, res) => {
-  const { name, username, email, password1, password2, location } = req.body;
+  const { name, username, email, password, password2, location } = req.body;
   const pageTitle = "Join";
-  if (password1 !== password2) {
-    console.log(password1, password2);
-    return res.render("join", {
+  if (password !== password2) {
+    return res.status(400).render("join", {
       pageTitle,
-      errorMessage: "Password confirmation does not match",
+      errorMessage: "Password confirmation does not match.",
     });
   }
   const exists = await User.exists({ $or: [{ username }, { email }] });
   if (exists) {
     return res.status(400).render("join", {
       pageTitle,
-      errorMessage: "This username/email is already taken",
+      errorMessage: "This username/email is already taken.",
     });
   }
   try {
@@ -39,29 +39,64 @@ export const getLogin = (req, res) =>
   res.render("login", { pageTitle: "Login" });
 
 export const postLogin = async (req, res) => {
-  const pageTitle = "Login";
   const { username, password } = req.body;
-  //check if password correct
+  const pageTitle = "Login";
   const user = await User.findOne({ username });
+
   if (!user) {
     return res.status(400).render("login", {
-      pageTitle: pageTitle,
-      errorMessage: "An account with this username does noe exist ",
+      pageTitle,
+      errorMessage: "An account with this username does not exists.",
     });
   }
-  console.log(user.password);
 
-  const ok = await bcryptjs.compare(password, user.password);
+  // check if password correct
+  const ok = await bcrypt.compare(password, user.password);
   if (!ok) {
     return res.status(400).render("login", {
-      pageTitle: pageTitle,
-      errorMessage: "Wrong password! ",
+      pageTitle,
+      errorMessage: "Wrong password",
     });
   }
+  req.session.loggedIn = true;
+  req.session.user = user;
   return res.redirect("/");
 };
-
-export const edit = (req, res) => res.send("Edit");
-export const remove = (req, res) => res.send("Delete");
-export const logout = (req, res) => res.send("logout");
+export const startGithubLogin = async (req, res) => {
+  const baseUrl = `https://github.com/login/oauth/autorize?`;
+  const config = {
+    clientId: process.env.GH_CLIENT,
+    allow_signup: false,
+    scope: "read:user user:email",
+  };
+  const params = new URLSearchParams(config).toString();
+  const finalUrl = `${baseUrl}?${params}`;
+  const data = await fetch(finalUrl, {
+    method: "POST",
+  });
+  const json = await data.json();
+  console.log(json);
+};
+export const finishGitubLogin = async (req, res) => {
+  const baseUrl = "https://github.com/login/oauth/access_token";
+  const config = {
+    client_id: process.env.GH_CLIENT,
+    client_secret: process.env.GH_SECRET,
+    code: req.query.code,
+  };
+  const params = new URLSearchParams(config).toString();
+  const finalUrl = `${baseUrl}?${params}`;
+  const data = await fetch(finalUrl, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+  const json = await data.json();
+  console.log(josn);
+  res.send(JSON.stringify(json));
+};
+export const edit = (req, res) => res.send("Edit User");
+export const remove = (req, res) => res.send("Remove User");
+export const logout = (req, res) => res.send("Log out");
 export const see = (req, res) => res.send("See User");
