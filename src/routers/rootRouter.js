@@ -5,7 +5,7 @@ import {
   postJoin,
   getLogin,
   postLogin,
-} from "../controllers/userController";
+} from "../controllers/userController.js";
 import { home, search } from "../controllers/videoController";
 
 const rootRouter = express.Router();

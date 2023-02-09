@@ -1,7 +1,6 @@
 import User from "../models/User";
 import bcrypt from "bcrypt";
-import fetch from "cross-fetch";
-
+import fetch from "node-fetch";
 export const getJoin = (req, res) => res.render("join", { pageTitle: "Join" });
 export const postJoin = async (req, res) => {
   const { name, username, email, password, password2, location } = req.body;
@@ -62,6 +61,7 @@ export const postLogin = async (req, res) => {
   req.session.user = user;
   return res.redirect("/");
 };
+
 export const startGithubLogin = async (req, res) => {
   const baseUrl = `https://github.com/login/oauth/autorize?`;
   const config = {
