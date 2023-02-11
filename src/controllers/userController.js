@@ -1,6 +1,7 @@
 import User from "../models/User";
 import bcrypt from "bcrypt";
 import fetch from "node-fetch";
+
 export const getJoin = (req, res) => res.render("join", { pageTitle: "Join" });
 export const postJoin = async (req, res) => {
   const { name, username, email, password, password2, location } = req.body;
@@ -62,18 +63,19 @@ export const postLogin = async (req, res) => {
   return res.redirect("/");
 };
 
-export const startGithubLogin = async (req, res) => {
-  const baseUrl = `https://github.com/login/oauth/autorize?`;
+export const startGithubLogin = (req, res) => {
+  const baseUrl = "https://github.com/login/oauth/authorize";
   const config = {
-    clientId: process.env.GH_CLIENT,
+    client_id: process.env.GH_CLIENT,
     allow_signup: false,
     scope: "read:user user:email",
   };
   const params = new URLSearchParams(config).toString();
   const finalUrl = `${baseUrl}?${params}`;
-  const data = await fetch(finalUrl);
+  return res.redirect(finalUrl);
 };
-export const finishGitubLogin = async (req, res) => {
+
+export const finishGithubLogin = async (req, res) => {
   const baseUrl = "https://github.com/login/oauth/access_token";
   const config = {
     client_id: process.env.GH_CLIENT,
@@ -92,6 +94,7 @@ export const finishGitubLogin = async (req, res) => {
   console.log(json);
   res.send(JSON.stringify(json));
 };
+
 export const edit = (req, res) => res.send("Edit User");
 export const remove = (req, res) => res.send("Remove User");
 export const logout = (req, res) => res.send("Log out");

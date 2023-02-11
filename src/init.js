@@ -1,8 +1,8 @@
 import "dotenv/config";
-import app from "./server";
 import "./db";
 import "./models/video";
 import "./models/User";
+import app from "./server";
 const PORT = 4000;
 
 const handleListening = () => {
