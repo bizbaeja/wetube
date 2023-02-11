@@ -71,11 +71,7 @@ export const startGithubLogin = async (req, res) => {
   };
   const params = new URLSearchParams(config).toString();
   const finalUrl = `${baseUrl}?${params}`;
-  const data = await fetch(finalUrl, {
-    method: "POST",
-  });
-  const json = await data.json();
-  console.log(json);
+  const data = await fetch(finalUrl);
 };
 export const finishGitubLogin = async (req, res) => {
   const baseUrl = "https://github.com/login/oauth/access_token";
@@ -93,7 +89,7 @@ export const finishGitubLogin = async (req, res) => {
     },
   });
   const json = await data.json();
-  console.log(josn);
+  console.log(json);
   res.send(JSON.stringify(json));
 };
 export const edit = (req, res) => res.send("Edit User");
