@@ -62,11 +62,12 @@ export const postLogin = async (req, res) => {
   req.session.user = user;
   return res.redirect("/");
 };
-
+//github에게 parameter등을 알려줌으로서 github이 어떤 어플에 로그인하는지 알도록 한다.
 export const startGithubLogin = (req, res) => {
   const baseUrl = "https://github.com/login/oauth/authorize";
   const config = {
     client_id: process.env.GH_CLIENT,
+    // 어떤 종류의 user를 허용시킬건지를 설정하는 parameter
     allow_signup: false,
     scope: "read:user user:email",
   };
@@ -74,7 +75,7 @@ export const startGithubLogin = (req, res) => {
   const finalUrl = `${baseUrl}?${params}`;
   return res.redirect(finalUrl);
 };
-
+//여기까지의 함수의 데이터를 github에 공유하는데 동의하면”localhost:4000/users/github/finish"로 redirect 된다.
 export const finishGithubLogin = async (req, res) => {
   const baseUrl = "https://github.com/login/oauth/access_token";
   const config = {
@@ -96,6 +97,7 @@ export const finishGithubLogin = async (req, res) => {
   if ("access_token" in tokenRequest) {
     const { access_token } = tokenRequest;
     const apiUrl = "https://api.github.com";
+    //해당 스코프로 요청해야한다.
     const userData = await (
       await fetch(`${apiUrl}/user`, {
         headers: {
@@ -143,6 +145,13 @@ export const finishGithubLogin = async (req, res) => {
 };
 
 export const edit = (req, res) => res.send("Edit User");
+export const getEdit = (req, res) => {
+  return res.render("edit-profile", { pageTitle: "Edit Profile" });
+};
+
+export const postEdit = (req, res) => {
+  return res.render("edit-profile");
+};
 export const logout = (req, res) => {
   req.session.destroy();
   return res.redirect("/");
