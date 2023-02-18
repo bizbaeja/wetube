@@ -1,6 +1,6 @@
 import Video from "../models/video";
 import multer from "multer";
-
+import User from "../models/User";
 export const home = async (req, res) => {
   const videos = await Video.find({}).sort({ createdAt: "desc" });
   console.log(videos);
@@ -10,12 +10,14 @@ export const home = async (req, res) => {
 export const watch = async (req, res) => {
   const { id } = req.params;
   const video = await Video.findById(id);
+  const owner = await User.findById(video.owner);
   if (!video) {
     return res.render("404", { pageTitle: "Video Not Found" });
   }
   return res.render("Watch", {
     pageTitle: video.title,
     video,
+    owner,
   });
 };
 
@@ -51,8 +53,11 @@ export const getUproad = (req, res) => {
 };
 
 export const postUpload = async (req, res) => {
+  //user는 req에서 가져오고 그리고 user 에서 _id 를 가져온다.
+  const {
+    user: { _id },
+  } = req.session;
   const file = req.file;
-
   const { title, description, hashtags } = req.body;
 
   try {
@@ -60,6 +65,7 @@ export const postUpload = async (req, res) => {
       title,
       description,
       fileUrl: file.path,
+      owner: _id,
       hashtags: Video.formatHashtags(hashtags),
     });
     return res.redirect("/");
