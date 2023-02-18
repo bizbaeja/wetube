@@ -152,33 +152,16 @@ export const getEdit = (req, res) => {
 export const postEdit = async (req, res) => {
   const {
     session: {
-      user: { _id, avatarUrl, email: sessionEmail, username: sessionUsername },
+      user: { _id, avatarUrl },
     },
     body: { name, email, username, location },
     file,
   } = req;
   console.log(file);
-  let searchParam = [];
-  if (sessionEmail !== email) {
-    searchParam.push({ email });
-  }
-  if (sessionUsername !== username) {
-    searchParam.push({ username });
-  }
-  if (searchParam.length > 0) {
-    const foundUser = await User.findOne({ $or: searchParam });
-    if (foundUser && foundUser._id.toString() !== _id) {
-      return res.status(HTTP_BAD_REQUEST).render("edit-profile", {
-        pageTitle: "Edit Profile",
-        errorMessage: "This username/email is already taken.",
-      });
-    }
-  }
-  const isHeroku = process.env.NODE_ENV === "production";
   const updatedUser = await User.findByIdAndUpdate(
     _id,
     {
-      avatarUrl: file ? (isHeroku ? file.location : file.path) : avatarUrl,
+      avatarUrl: file ? file.path : avatarUrl,
       name,
       email,
       username,
@@ -195,7 +178,6 @@ export const logout = (req, res) => {
   req.session.destroy();
   return res.redirect("/");
 };
-export const see = (req, res) => res.send("See User");
 
 export const getChangePassword = (req, res) => {
   if (req.session.user.socialOnly === true) {
@@ -231,4 +213,15 @@ export const postChangePassword = async (req, res) => {
   req.session.user.password = user.password;
 
   return res.redirect("/users/logout");
+};
+export const see = async (req, res) => {
+  const { id } = req.params;
+  if (!user) {
+    return res.status(404).render("404", { pageTitle: "User Not Found" });
+  }
+  const user = await User.findById(id);
+  return res.render("users/profile", {
+    pageTitle: `${user.name}의 Uesr Profile`,
+    user,
+  });
 };

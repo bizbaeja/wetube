@@ -1,4 +1,6 @@
 import Video from "../models/video";
+import multer from "multer";
+
 export const home = async (req, res) => {
   const videos = await Video.find({}).sort({ createdAt: "desc" });
   console.log(videos);
@@ -29,6 +31,7 @@ export const getEdit = async (req, res) => {
 export const postEdit = async (req, res) => {
   const { id } = req.params;
   const { title, description, hashtags } = req.body;
+
   const video = await Video.exists({ _id: id });
   if (!video) {
     return res.status(400).res.render("404", { pageTitle: "Video not found" });
@@ -40,6 +43,7 @@ export const postEdit = async (req, res) => {
   });
 
   return res.redirect(`/videos/${id}`);
+  console.log("여기");
 };
 
 export const getUproad = (req, res) => {
@@ -47,12 +51,15 @@ export const getUproad = (req, res) => {
 };
 
 export const postUpload = async (req, res) => {
+  const file = req.file;
+
   const { title, description, hashtags } = req.body;
 
   try {
     await Video.create({
       title,
       description,
+      fileUrl: file.path,
       hashtags: Video.formatHashtags(hashtags),
     });
     return res.redirect("/");
