@@ -1,6 +1,7 @@
 import User from "../models/User";
 import bcrypt from "bcrypt";
 import fetch from "node-fetch";
+import video from "../models/video";
 
 export const getJoin = (req, res) => res.render("join", { pageTitle: "Join" });
 export const postJoin = async (req, res) => {
@@ -67,7 +68,6 @@ export const startGithubLogin = (req, res) => {
   const baseUrl = "https://github.com/login/oauth/authorize";
   const config = {
     client_id: process.env.GH_CLIENT,
-    // 어떤 종류의 user를 허용시킬건지를 설정하는 parameter
     allow_signup: false,
     scope: "read:user user:email",
   };
@@ -75,6 +75,7 @@ export const startGithubLogin = (req, res) => {
   const finalUrl = `${baseUrl}?${params}`;
   return res.redirect(finalUrl);
 };
+
 //여기까지의 함수의 데이터를 github에 공유하는데 동의하면”localhost:4000/users/github/finish"로 redirect 된다.
 export const finishGithubLogin = async (req, res) => {
   const baseUrl = "https://github.com/login/oauth/access_token";
@@ -93,11 +94,9 @@ export const finishGithubLogin = async (req, res) => {
       },
     })
   ).json();
-
   if ("access_token" in tokenRequest) {
     const { access_token } = tokenRequest;
     const apiUrl = "https://api.github.com";
-    //해당 스코프로 요청해야한다.
     const userData = await (
       await fetch(`${apiUrl}/user`, {
         headers: {
@@ -105,7 +104,6 @@ export const finishGithubLogin = async (req, res) => {
         },
       })
     ).json();
-    console.log(userData);
     const emailData = await (
       await fetch(`${apiUrl}/user/emails`, {
         headers: {
@@ -117,24 +115,20 @@ export const finishGithubLogin = async (req, res) => {
       (email) => email.primary === true && email.verified === true
     );
     if (!emailObj) {
+      // set notification
       return res.redirect("/login");
     }
-    console.log(emailObj);
     let user = await User.findOne({ email: emailObj.email });
     if (!user) {
       user = await User.create({
-        name: userData.name ? userData.name : "bizbaeja",
-        avatarUrl: userData.avata_url,
+        avatarUrl: userData.avatar_url,
+        name: userData.name,
         username: userData.login,
         email: emailObj.email,
         password: "",
         socialOnly: true,
         location: userData.location,
       });
-
-      req.session.loggedIn = true;
-      req.session.user = user;
-      return res.redirect("/");
     }
     req.session.loggedIn = true;
     req.session.user = user;
@@ -143,8 +137,10 @@ export const finishGithubLogin = async (req, res) => {
     return res.redirect("/login");
   }
 };
-
-export const edit = (req, res) => res.send("Edit User");
+export const logout = (req, res) => {
+  req.session.destroy();
+  return res.redirect("/");
+};
 export const getEdit = (req, res) => {
   return res.render("edit-profile", { pageTitle: "Edit Profile" });
 };
@@ -157,7 +153,6 @@ export const postEdit = async (req, res) => {
     body: { name, email, username, location },
     file,
   } = req;
-  console.log(file);
   const updatedUser = await User.findByIdAndUpdate(
     _id,
     {
@@ -167,16 +162,10 @@ export const postEdit = async (req, res) => {
       username,
       location,
     },
-    {
-      new: true,
-    }
+    { new: true }
   );
   req.session.user = updatedUser;
   return res.redirect("/users/edit");
-};
-export const logout = (req, res) => {
-  req.session.destroy();
-  return res.redirect("/");
 };
 
 export const getChangePassword = (req, res) => {
@@ -186,42 +175,39 @@ export const getChangePassword = (req, res) => {
   return res.render("users/change-password", { pageTitle: "Change Password" });
 };
 export const postChangePassword = async (req, res) => {
-  //send notification
   const {
     session: {
-      user: { _id, password },
+      user: { _id },
     },
     body: { oldPassword, newPassword, newPasswordConfirmation },
   } = req;
-  const ok = await bcrypt.compare(oldPassword, password);
+  const user = await User.findById(_id);
+  const ok = await bcrypt.compare(oldPassword, user.password);
   if (!ok) {
     return res.status(400).render("users/change-password", {
       pageTitle: "Change Password",
-      errorMessage: "The current password is incorrect ",
+      errorMessage: "The current password is incorrect",
     });
   }
   if (newPassword !== newPasswordConfirmation) {
     return res.status(400).render("users/change-password", {
       pageTitle: "Change Password",
-      errorMessage: "The password does not match the confirmation ",
+      errorMessage: "The password does not match the confirmation",
     });
   }
-  const user = await User.findById(_id);
   user.password = newPassword;
-  return res.redirect("/");
   await user.save();
-  req.session.user.password = user.password;
-
   return res.redirect("/users/logout");
 };
+
 export const see = async (req, res) => {
   const { id } = req.params;
+  const user = await User.findById(id).populate("videos");
   if (!user) {
-    return res.status(404).render("404", { pageTitle: "User Not Found" });
+    return res.status(404).render("404", { pageTitle: "User not found." });
   }
-  const user = await User.findById(id);
   return res.render("users/profile", {
-    pageTitle: `${user.name}의 Uesr Profile`,
+    pageTitle: user.name,
     user,
   });
 };
