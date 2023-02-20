@@ -84,6 +84,7 @@ export const finishGithubLogin = async (req, res) => {
     client_secret: process.env.GH_SECRET,
     code: req.query.code,
   };
+
   const params = new URLSearchParams(config).toString();
   const finalUrl = `${baseUrl}?${params}`;
   const tokenRequest = await (
@@ -96,6 +97,10 @@ export const finishGithubLogin = async (req, res) => {
   ).json();
   if ("access_token" in tokenRequest) {
     const { access_token } = tokenRequest;
+    // console.log(tokenRequest);
+    // access_token.access_token =
+    //   "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";
+    console.log(`허억 죽이면안돼 ${access_token}`);
     const apiUrl = "https://api.github.com";
     const userData = await (
       await fetch(`${apiUrl}/user`, {
@@ -132,6 +137,7 @@ export const finishGithubLogin = async (req, res) => {
     }
     req.session.loggedIn = true;
     req.session.user = user;
+
     return res.redirect("/");
   } else {
     return res.redirect("/login");
