@@ -97,10 +97,6 @@ export const finishGithubLogin = async (req, res) => {
   ).json();
   if ("access_token" in tokenRequest) {
     const { access_token } = tokenRequest;
-    // console.log(tokenRequest);
-    // access_token.access_token =
-    //   "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";
-    console.log(`허억 죽이면안돼 ${access_token}`);
     const apiUrl = "https://api.github.com";
     const userData = await (
       await fetch(`${apiUrl}/user`, {
@@ -124,15 +120,15 @@ export const finishGithubLogin = async (req, res) => {
       return res.redirect("/login");
     }
     let user = await User.findOne({ email: emailObj.email });
+    if (!user.socialType !== access_token) {
+      req.flash("error", `Your account os ${user.socialType}`);
+      return res.redirect("/login");
+    }
     if (!user) {
       user = await User.create({
-        avatarUrl: userData.avatar_url,
-        name: userData.name,
-        username: userData.login,
-        email: emailObj.email,
-        password: "",
-        socialOnly: true,
-        location: userData.location,
+        name: userData.name ? userData.name : userData.login,
+        avatarUrl: userData.avatarUrl,
+        socialType: access_token,
       });
     }
     req.session.loggedIn = true;
