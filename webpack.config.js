@@ -3,7 +3,10 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 console.log(path.resolve(__dirname, "assets", "js"));
 
 module.exports = {
-  entry: "./src/client/js/main.js",
+  entry: {
+    main: "./src/client/js/main.js",
+    videoPlayer: "./src/client/js/videoPlayer.js",
+  },
   watch: true,
   watchOptions: {
     aggregateTimeout: 200,
@@ -18,7 +21,7 @@ module.exports = {
   mode: "development",
 
   output: {
-    filename: "js/main.js",
+    filename: "js/[name].js",
     path: path.resolve(__dirname, "assets"),
     clean: true,
   },
