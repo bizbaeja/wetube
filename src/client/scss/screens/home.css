@@ -1,5 +1,5 @@
 .home__videos {
-  background-color: red;
+  display: grid;
   gap: 50px;
   grid-template-columns: repeat(4, 1fr);
 }/*# sourceMappingURL=home.css.map */

@@ -12,9 +12,17 @@ const handlePlayClick = (e) => {
   } else {
     video.pause();
   }
-  //else play the video
+  playBtn.innerText = video.pauesd ? "Play" : "Pause";
 };
-const handleMute = (e) => {};
+const handleMute = (e) => {
+  if (video.muted) {
+    video.muted = false;
+  } else {
+    video.muted = true;
+  }
+  muteBtn.innerText = video.muted ? "Unmute" : "Mute";
+  volumeRange.value = video.muted ? 0 : 0.5;
+};
 const handlePause = (e) => {
   playBtn.innerText = "play";
 };
