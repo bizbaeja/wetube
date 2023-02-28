@@ -4,7 +4,8 @@ const playBtn = document.getElementById("play");
 const muteBtn = document.getElementById("mute");
 const time = document.getElementById("time");
 const volume = document.getElementById("volume");
-
+const volumeRange = document.getElementById("volume");
+let volumeValue = 0.5;
 const handlePlayClick = (e) => {
   //if hte video is playing , pause it
   if (video.paused) {
@@ -27,8 +28,16 @@ const handlePause = (e) => {
   playBtn.innerText = "play";
 };
 
+const handleVolumeChange = (event) => {
+  const {
+    target: { value },
+  } = event;
+  video.volume = value;
+  console.log(event.target.value);
+};
 const handlePlay = (e) => {};
 playBtn.addEventListener("click", handlePlayClick);
 muteBtn.addEventListener("click", handleMute);
 video.addEventListener("pause", handlePause);
 video.addEventListener("play", handlePlay);
+volumeRange.addEventListener("change", handleVolumeChange);
