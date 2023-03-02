@@ -14,6 +14,7 @@ const handlePlayClick = (e) => {
     video.pause();
   }
   playBtn.innerText = video.pauesd ? "Play" : "Pause";
+  return;
 };
 const handleMute = (e) => {
   if (video.muted) {
@@ -26,6 +27,7 @@ const handleMute = (e) => {
 };
 const handlePause = (e) => {
   playBtn.innerText = "play";
+  return;
 };
 
 const handleVolumeChange = (event) => {
@@ -37,14 +39,17 @@ const handleVolumeChange = (event) => {
     muteBtn.innerText = video.muted ? "Unmute" : "Mute";
   }
   video.volume = value;
+  return;
 };
 const handleMetadata = () => {
   totalTime.innerText = formatTime(Math.floor(video.duration));
   timeline.max = Math.floor(video.duration);
+  return;
 };
 
 const handleTimeUpdate = () => {
   currentTime.innerText = Math.floor(video.currentTime);
+  return;
 };
 
 playBtn.addEventListener("click", handlePlayClick);

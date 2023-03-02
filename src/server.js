@@ -22,12 +22,12 @@ app.use(
   })
 );
 
-console.log(process.env);
+// console.log(process.env);
 
 app.use((req, res, next) => {
   res.locals.sexy = "you";
   req.sessionStore.all((error, sessions) => {
-    console.log(sessions);
+    // console.log(sessions);
     next();
   });
 });
