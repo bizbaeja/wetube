@@ -7,10 +7,14 @@
 @import "./components/footer.scss";
 @import "./components/video.scss";
 @import "./components/shared.scss";
+@import "./components/forms.scss";
+@import "./components/social-login.scss";
+@import "./components/video-player.scss";
 
 //screens
 @import "./screens/home.scss";
 @import "./screens/search.scss";
+@import "./screens/edit-profile.scss";
 
 a {
   color: inherit;
@@ -29,4 +33,17 @@ main {
   width: 100%;
   margin: 0 auto;
   margin-top: 50px;
+}
+
+.message {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  top: 10px 20px;
+  border-radius: 10000px;
+  &.error {
+    background-color: tomato;
+    color: white;
+  }
 }

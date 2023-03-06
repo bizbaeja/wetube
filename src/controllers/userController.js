@@ -141,6 +141,7 @@ export const finishGithubLogin = async (req, res) => {
 };
 export const logout = (req, res) => {
   req.session.destroy();
+  req.flash("info", "Bye Bye");
   return res.redirect("/");
 };
 export const getEdit = (req, res) => {
@@ -199,6 +200,7 @@ export const postChangePassword = async (req, res) => {
   }
   user.password = newPassword;
   await user.save();
+  req.flash("info", "비밀번호가 변경되었습니다.");
   return res.redirect("/users/logout");
 };
 
