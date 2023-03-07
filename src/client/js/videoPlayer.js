@@ -1,16 +1,14 @@
 var playPromise = document.querySelector("video").play();
-if (playPromise !== undefined) {
-  playPromise
-    .then(function () {
-      // Automatic playback started!
-      video.play();
-    })
-    .catch(function (error) {
-      // Automatic playback failed.
-      // Show a UI element to let the user manually start playback.
-      video.pause();
-    });
+async function playVideo() {
+  const video = document.querySelector("video");
+  try {
+    await video.play();
+    console.log("Video is playing.");
+  } catch (error) {
+    console.error("Failed to play the video.", error);
+  }
 }
+
 const video = document.querySelector("video");
 const playBtn = document.getElementById("play");
 const playBtnIcon = playBtn.querySelector("i");
@@ -143,3 +141,4 @@ videoContainer.addEventListener("mousemove", handleMouseMove);
 videoContainer.addEventListener("mouseleave", handleMouseLeave);
 timeline.addEventListener("input", handleTimelineChange);
 fullScreenBtn.addEventListener("click", handleFullscreen);
+playBtn.addEventListener("click", playVideo);
