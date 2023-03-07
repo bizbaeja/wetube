@@ -1,7 +1,6 @@
 import User from "../models/User";
-import bcrypt from "bcrypt";
 import fetch from "node-fetch";
-import video from "../models/video";
+import bcrypt from "bcrypt";
 
 export const getJoin = (req, res) => res.render("join", { pageTitle: "Join" });
 export const postJoin = async (req, res) => {
@@ -43,15 +42,12 @@ export const postLogin = async (req, res) => {
   const { username, password } = req.body;
   const pageTitle = "Login";
   const user = await User.findOne({ username, socialOnly: false });
-
   if (!user) {
     return res.status(400).render("login", {
       pageTitle,
       errorMessage: "An account with this username does not exists.",
     });
   }
-
-  // check if password correct
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) {
     return res.status(400).render("login", {
@@ -63,7 +59,7 @@ export const postLogin = async (req, res) => {
   req.session.user = user;
   return res.redirect("/");
 };
-//github에게 parameter등을 알려줌으로서 github이 어떤 어플에 로그인하는지 알도록 한다.
+
 export const startGithubLogin = (req, res) => {
   const baseUrl = "https://github.com/login/oauth/authorize";
   const config = {
@@ -76,7 +72,6 @@ export const startGithubLogin = (req, res) => {
   return res.redirect(finalUrl);
 };
 
-//여기까지의 함수의 데이터를 github에 공유하는데 동의하면”localhost:4000/users/github/finish"로 redirect 된다.
 export const finishGithubLogin = async (req, res) => {
   const baseUrl = "https://github.com/login/oauth/access_token";
   const config = {
@@ -84,7 +79,6 @@ export const finishGithubLogin = async (req, res) => {
     client_secret: process.env.GH_SECRET,
     code: req.query.code,
   };
-
   const params = new URLSearchParams(config).toString();
   const finalUrl = `${baseUrl}?${params}`;
   const tokenRequest = await (
@@ -120,25 +114,25 @@ export const finishGithubLogin = async (req, res) => {
       return res.redirect("/login");
     }
     let user = await User.findOne({ email: emailObj.email });
-    if (!user.socialType !== access_token) {
-      req.flash("error", `Your account os ${user.socialType}`);
-      return res.redirect("/login");
-    }
     if (!user) {
       user = await User.create({
+        avatarUrl: userData.avatar_url,
         name: userData.name ? userData.name : userData.login,
-        avatarUrl: userData.avatarUrl,
-        socialType: access_token,
+        username: userData.login,
+        email: emailObj.email,
+        password: "",
+        socialOnly: true,
+        location: userData.location,
       });
     }
     req.session.loggedIn = true;
     req.session.user = user;
-
     return res.redirect("/");
   } else {
     return res.redirect("/login");
   }
 };
+
 export const logout = (req, res) => {
   req.session.destroy();
   req.flash("info", "Bye Bye");
@@ -147,7 +141,6 @@ export const logout = (req, res) => {
 export const getEdit = (req, res) => {
   return res.render("edit-profile", { pageTitle: "Edit Profile" });
 };
-
 export const postEdit = async (req, res) => {
   const {
     session: {
@@ -173,6 +166,7 @@ export const postEdit = async (req, res) => {
 
 export const getChangePassword = (req, res) => {
   if (req.session.user.socialOnly === true) {
+    req.flash("error", "Can't change password.");
     return res.redirect("/");
   }
   return res.render("users/change-password", { pageTitle: "Change Password" });
@@ -200,13 +194,19 @@ export const postChangePassword = async (req, res) => {
   }
   user.password = newPassword;
   await user.save();
-  req.flash("info", "비밀번호가 변경되었습니다.");
+  req.flash("info", "Password updated");
   return res.redirect("/users/logout");
 };
 
 export const see = async (req, res) => {
   const { id } = req.params;
-  const user = await User.findById(id).populate("videos");
+  const user = await User.findById(id).populate({
+    path: "videos",
+    populate: {
+      path: "owner",
+      model: "User",
+    },
+  });
   if (!user) {
     return res.status(404).render("404", { pageTitle: "User not found." });
   }
