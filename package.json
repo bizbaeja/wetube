@@ -18,6 +18,10 @@
     "type": "git",
     "url": "git+https://github.com/bizbaeja/NomadCoder.git"
   },
+  "engines": {
+    "node": "14.15.1",
+    "npm": "6.14.8"
+  },
   "author": "bizbaeja",
   "license": "ISC",
   "bugs": {
