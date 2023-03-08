@@ -42,6 +42,13 @@ const server = http.createServer(async (req, res) => {
 server.listen(port, () => {
   console.log("Server is running");
 });
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("client/build"));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "../client", "build", "index.html"));
+  });
+}
 //cores
 const app = express();
 
