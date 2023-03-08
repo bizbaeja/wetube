@@ -11,6 +11,7 @@ import { localsMiddleWare } from "./middlewares";
 import http from "http";
 import { async } from "regenerator-runtime";
 var port = process.env.PORT || 8000;
+const { TextDecoder, TextEncoder } = require("util");
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Method": "GET,POST,DELETE,OPTIONS",
