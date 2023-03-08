@@ -121,3 +121,9 @@ export const search = async (req, res) => {
   console.log("should search for", keyword);
   return res.render("search", { pageTitle: "Search", videos });
 };
+
+export const createComment = (req, res) => {
+  console.log(req.params);
+  console.log(req.body);
+  res.end();
+};

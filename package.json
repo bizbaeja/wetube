@@ -4,9 +4,14 @@
   "description": "the best way to watch video",
   "main": "server.js",
   "scripts": {
+    "start": "node build/init.js",
+    "build:assets": "webpack --mode=production=false",
+    "build:server": "babel src -d build",
     "dev": "nodemon --exec babel-node src/init.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "assets": "webpack --config webpack.config.js"
+    "assets": "webpack --config webpack.config.js",
+    "dev:assets": "webpack --mode=development -w",
+    "dev:server": "nodemon"
   },
   "repository": {
     "type": "git",
@@ -24,6 +29,7 @@
     "bcrypt": "^5.1.0",
     "bcryptjs": "^2.4.3",
     "connect-mongo": "^4.6.0",
+    "cors": "^2.8.5",
     "css-loader": "^6.7.3",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
@@ -40,7 +46,8 @@
     "sass-loader": "^13.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.7",
+    "@babel/cli": "^7.21.0",
+    "@babel/core": "^7.21.0",
     "@babel/node": "^7.20.7",
     "@babel/preset-env": "^7.20.2",
     "babel-loader": "^9.1.2",
