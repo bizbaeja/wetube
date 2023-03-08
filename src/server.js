@@ -42,7 +42,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(port, () => {
   console.log("Server is running");
 });
-
+//cores
 const app = express();
 
 app.set("view engine", "pug");
