@@ -1,6 +1,6 @@
 import "regenerator-runtime";
 import "dotenv/config";
-import "./db"; // connect to Mongo
+import "./db";
 import "./models/Video";
 import "./models/User";
 import app from "./server";
