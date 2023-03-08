@@ -1,12 +1,5 @@
-//스키마 만들기
-//1. 몽구스 import
-//2. const schema = new mongoose.Schema({})
-//(2-1) User 이므로 email 과 type, required , validation 등 속성을 정해준다.
-//3. modelName = mongoose.model("model",schemafuncion)
-//4. export default modelName;
-//5. init.js 에서 modelName 을 import 하기
-import bcrypt from "bcrypt";
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
@@ -16,18 +9,18 @@ const userSchema = new mongoose.Schema({
   password: { type: String },
   name: { type: String, required: true },
   location: String,
-  comments: [
-    { type: mongoose.Schema.Types.ObjectId, required: true, ref: "Comment" },
-  ],
-  videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "video" }],
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
+  videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
 });
 
 userSchema.pre("save", async function () {
+  // PW가 아닌 video를 업로드할 때에도 hashing 발생 => 다시 로그인 불가능
+  // password가 수정되는 경우에만 한해서 hashing을 하라는 if문
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 5);
   }
 });
-//this는 create 되는 User 를 가리킨다.
 
 const User = mongoose.model("User", userSchema);
+
 export default User;

@@ -1,27 +1,29 @@
-header
-    a(href="/").header__logo
+header 
+    a(href="/").header___logo
         i.fab.fa-youtube
-
     nav 
-        ul  
+        ul 
             li 
-                a(href="/search") Search
+                a(href="/search") 
                     i.fas.fa-search
-            if loggedIn
-                li
-                    a(href="/videos/upload") Upload Video   
-                li  
-                    a(href=`/users/${loggedInUser._id}`) My Profile
+            if loggedIn 
                 li 
-                    a(href="/users/edit") Edit profile
-                li
-
+                    a(href="/videos/upload") Upload Video
+                li 
+                    a(href="/users/edit") Edit Profile
+                li 
                     a(href="/users/logout") Log out
                 li 
-                    a(href="/my-profile") #{loggedInUser.name} 의 profile
+                    a(href=`/users/${loggedInUser._id}`)
+                        if !loggedInUser.avatarUrl 
+                            span ♔
+                        else 
+                            if loggedInUser.avatarUrl.includes("github")
+                                img.header__avatar(src=loggedInUser.avatarUrl)
+                            else
+                                img.header__avatar(src=loggedInUser.avatarUrl)
             else
                 li 
-                    a(href="/join") Join
-                li
-                    a(href="/login").header__btn  Login      
-            
+                    a(href="/join").header__btn Join
+                li 
+                    a(href="/login") Login

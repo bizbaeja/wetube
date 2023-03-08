@@ -1,21 +1,21 @@
 import User from "../models/User";
+import Video from "../models/Video";
 import fetch from "node-fetch";
 import bcrypt from "bcrypt";
 
 export const getJoin = (req, res) => res.render("join", { pageTitle: "Join" });
 export const postJoin = async (req, res) => {
   const { name, username, email, password, password2, location } = req.body;
-  const pageTitle = "Join";
   if (password !== password2) {
     return res.status(400).render("join", {
-      pageTitle,
-      errorMessage: "Password confirmation does not match.",
+      pageTitle: "Join",
+      errorMessage: "Password confirmation does not match",
     });
   }
   const exists = await User.exists({ $or: [{ username }, { email }] });
   if (exists) {
     return res.status(400).render("join", {
-      pageTitle,
+      pageTitle: "Join",
       errorMessage: "This username/email is already taken.",
     });
   }
@@ -27,102 +27,96 @@ export const postJoin = async (req, res) => {
       password,
       location,
     });
-    return res.redirect("/login");
+    res.redirect("/login");
   } catch (error) {
+    console.log(error);
     return res.status(400).render("join", {
       pageTitle: "Upload Video",
       errorMessage: error._message,
     });
   }
 };
+
+export const remove = (req, res) => res.send("Remove User");
+
 export const getLogin = (req, res) =>
   res.render("login", { pageTitle: "Login" });
-
 export const postLogin = async (req, res) => {
   const { username, password } = req.body;
   const pageTitle = "Login";
   const user = await User.findOne({ username, socialOnly: false });
+  // check if account exists
   if (!user) {
     return res.status(400).render("login", {
       pageTitle,
       errorMessage: "An account with this username does not exists.",
     });
   }
+  // check if password is correct
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) {
-    return res.status(400).render("login", {
-      pageTitle,
-      errorMessage: "Wrong password",
-    });
+    return res
+      .status(400)
+      .render("login", { pageTitle, errorMessage: "Wrong password" });
   }
   req.session.loggedIn = true;
   req.session.user = user;
   return res.redirect("/");
 };
 
-export const startGithubLogin = (req, res) => {
-  const baseUrl = "https://github.com/login/oauth/authorize";
+export const startGitHubLogin = (req, res) => {
+  const baseURL = "https://github.com/login/oauth/authorize";
   const config = {
     client_id: process.env.GH_CLIENT,
     allow_signup: false,
     scope: "read:user user:email",
   };
   const params = new URLSearchParams(config).toString();
-  const finalUrl = `${baseUrl}?${params}`;
-  return res.redirect(finalUrl);
+  const finalURL = `${baseURL}?${params}`;
+  return res.redirect(finalURL);
 };
-
-export const finishGithubLogin = async (req, res) => {
-  const baseUrl = "https://github.com/login/oauth/access_token";
+export const finishGitHubLogin = async (req, res) => {
+  const baseURL = "https://github.com/login/oauth/access_token";
   const config = {
     client_id: process.env.GH_CLIENT,
     client_secret: process.env.GH_SECRET,
     code: req.query.code,
   };
   const params = new URLSearchParams(config).toString();
-  const finalUrl = `${baseUrl}?${params}`;
+  const finalURL = `${baseURL}?${params}`;
   const tokenRequest = await (
-    await fetch(finalUrl, {
+    await fetch(finalURL, {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-      },
+      headers: { Accept: "application/json" },
     })
   ).json();
   if ("access_token" in tokenRequest) {
     const { access_token } = tokenRequest;
-    const apiUrl = "https://api.github.com";
+    const apiURL = "https://api.github.com";
     const userData = await (
-      await fetch(`${apiUrl}/user`, {
-        headers: {
-          Authorization: `token ${access_token}`,
-        },
+      await fetch(`${apiURL}/user`, {
+        headers: { Authorization: `token ${access_token}` },
       })
     ).json();
     const emailData = await (
-      await fetch(`${apiUrl}/user/emails`, {
-        headers: {
-          Authorization: `token ${access_token}`,
-        },
+      await fetch(`${apiURL}/user/emails`, {
+        headers: { Authorization: `token ${access_token}` },
       })
     ).json();
-    const emailObj = emailData.find(
-      (email) => email.primary === true && email.verified === true
-    );
+    const emailObj = emailData.find((email) => email.primary && email.verified);
     if (!emailObj) {
-      // set notification
       return res.redirect("/login");
     }
-    let user = await User.findOne({ email: emailObj.email });
+    // gitHub Login vs password Login
+    let user = await User.findOne({ email: emailObj.email }); // 기존에 있는지 확인
     if (!user) {
       user = await User.create({
+        name: userData.name,
         avatarUrl: userData.avatar_url,
-        name: userData.name ? userData.name : userData.login,
         username: userData.login,
         email: emailObj.email,
         password: "",
         socialOnly: true,
-        location: userData.location,
       });
     }
     req.session.loggedIn = true;
@@ -135,24 +129,48 @@ export const finishGithubLogin = async (req, res) => {
 
 export const logout = (req, res) => {
   req.session.destroy();
-  req.flash("info", "Bye Bye");
+  // req.session.user = null;
   return res.redirect("/");
 };
+
 export const getEdit = (req, res) => {
   return res.render("edit-profile", { pageTitle: "Edit Profile" });
 };
 export const postEdit = async (req, res) => {
   const {
     session: {
-      user: { _id, avatarUrl },
+      user: { _id, avatarUrl, email: sessionEmail, username: sessionUsername },
     },
     body: { name, email, username, location },
     file,
   } = req;
+  // 바뀐 값이 있다면 겹치는지 알아보기 위해 빈 array 생성
+  let searchParam = [];
+  // 값을 수정했는지 확인
+  if (sessionEmail !== email) {
+    searchParam.push({ email });
+  }
+  if (sessionUsername !== username) {
+    searchParam.push({ username });
+  }
+  // 변경된 값이 있다면 실행되는 if문
+  if (searchParam.length > 0) {
+    // 같은 username OR email을 사용하는 유저가 있는지 확인
+    const foundUser = await User.findOne({ $or: searchParam });
+    if (foundUser && foundUser._id.toString() !== _id) {
+      // 겹치는 유저가 존재하는데, 그게 본인이 아님 (다른 누군가가 사용중)
+      return res.status(400).render("edit-profile", {
+        pageTitle: "Edit Profile",
+        errorMessage: "This username/email is already taken.",
+      });
+    }
+  }
+  // 사용중인 다른 유저가 없는 username AND email이라면, 내껄로 저장 & UPDATE
+  const isHeroku = process.env.NODE_ENV === "production";
   const updatedUser = await User.findByIdAndUpdate(
     _id,
     {
-      avatarUrl: file ? file.path : avatarUrl,
+      avatarUrl: file ? (isHeroku ? file.location : file.path) : avatarUrl,
       name,
       email,
       username,
@@ -165,7 +183,7 @@ export const postEdit = async (req, res) => {
 };
 
 export const getChangePassword = (req, res) => {
-  if (req.session.user.socialOnly === true) {
+  if (req.session.user.socialOnly) {
     req.flash("error", "Can't change password.");
     return res.redirect("/");
   }
@@ -174,27 +192,29 @@ export const getChangePassword = (req, res) => {
 export const postChangePassword = async (req, res) => {
   const {
     session: {
-      user: { _id },
+      user: { _id, password }, // current loggedIn user
     },
     body: { oldPassword, newPassword, newPasswordConfirmation },
   } = req;
   const user = await User.findById(_id);
+  // 기존 pw가 맞는지 확인
   const ok = await bcrypt.compare(oldPassword, user.password);
   if (!ok) {
     return res.status(400).render("users/change-password", {
       pageTitle: "Change Password",
-      errorMessage: "The current password is incorrect",
+      errorMessage: "The current password is incorrect.",
     });
   }
+  // 새로운 pw를 제대로 작성했는지 확인
   if (newPassword !== newPasswordConfirmation) {
     return res.status(400).render("users/change-password", {
       pageTitle: "Change Password",
-      errorMessage: "The password does not match the confirmation",
+      errorMessage: "The password does not match the confirmation.",
     });
   }
   user.password = newPassword;
   await user.save();
-  req.flash("info", "Password updated");
+  req.flash("info", "Password updated.");
   return res.redirect("/users/logout");
 };
 

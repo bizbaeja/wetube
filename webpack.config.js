@@ -1,5 +1,6 @@
 const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+
 const BASE_JS = "./src/client/js/";
 
 module.exports = {
@@ -9,19 +10,11 @@ module.exports = {
     recorder: BASE_JS + "recorder.js",
     commentSection: BASE_JS + "commentSection.js",
   },
-  watch: true,
-  watchOptions: {
-    aggregateTimeout: 200,
-    poll: 1000,
-  },
-
   plugins: [
     new MiniCssExtractPlugin({
       filename: "css/styles.css",
     }),
   ],
-  mode: "development",
-
   output: {
     filename: "js/[name].js",
     path: path.resolve(__dirname, "assets"),
@@ -39,12 +32,11 @@ module.exports = {
         },
       },
       {
-        //우리는 모든 scss 파일을 변환시킬 것이다.
         test: /\.scss$/,
-        //그를 위해 로더 3개를 사용할 것인데, **제일 중요한건 제일 마지막 loader 부터 시작해야 한다
-        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
+        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"], // 역순으로 실행
+        // sass loader: scss => normal css
+        // style loader: inject css code in browser
       },
     ],
   },
 };
-//__dirname : 파일까지의 경로 전체

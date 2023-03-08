@@ -1,18 +1,40 @@
 import multer from "multer";
+import multerS3 from "multer-s3";
+import aws from "aws-sdk";
 
-export const localsMiddleware = (req, res, next) => {
+const s3 = new aws.S3({
+  credentials: {
+    accessKeyId: process.env.AWS_ID,
+    secretAccessKey: process.env.AWS_SECRET,
+  },
+});
+
+const isHeroku = process.env.NODE_ENV === "production";
+
+const s3ImageUploader = multerS3({
+  s3: s3,
+  bucket: "youtubeclonee/images",
+  acl: "public-read",
+});
+
+const s3VideoUploader = multerS3({
+  s3: s3,
+  bucket: "youtubeclonee/videos",
+  acl: "public-read",
+});
+
+export const localsMiddleWare = (req, res, next) => {
   res.locals.loggedIn = Boolean(req.session.loggedIn);
-  console.log(res.locals);
-  res.locals.siteName = "Wetube";
+  res.locals.siteName = "Youtube";
   res.locals.loggedInUser = req.session.user || {};
-  console.log(req.session.user);
   next();
 };
-export const protectMiddleware = (req, res, next) => {
+
+export const protectorMiddleware = (req, res, next) => {
   if (req.session.loggedIn) {
-    next();
+    return next();
   } else {
-    req.flash("error", "Log in first");
+    req.flash("error", "Log in first.");
     return res.redirect("/login");
   }
 };
@@ -21,16 +43,17 @@ export const publicOnlyMiddleware = (req, res, next) => {
   if (!req.session.loggedIn) {
     return next();
   } else {
-    req.flash("error", "Not autorized");
+    req.flash("error", "Not authorized.");
     return res.redirect("/");
   }
 };
 
-export const avataUpload = multer({
+export const avatarUpload = multer({
   dest: "uploads/avatars/",
   limits: {
     fileSize: 3000000,
   },
+  storage: isHeroku ? s3ImageUploader : undefined,
 });
 
 export const videoUpload = multer({
@@ -38,4 +61,5 @@ export const videoUpload = multer({
   limits: {
     fileSize: 10000000,
   },
+  storage: isHeroku ? s3VideoUploader : undefined,
 });
