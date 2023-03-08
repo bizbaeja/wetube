@@ -1,3 +1,5 @@
+console.log(process.version);
+new TextEncoder();
 module.exports = {
   testEnvironment: "node",
 };
