@@ -10,7 +10,7 @@ import { publicOnlyMiddleware } from "../middlewares";
 
 const rootRouter = express.Router();
 
-rootRouter.get("/", home); // videodd
+rootRouter.get("/", home); // video
 rootRouter.route("/join").all(publicOnlyMiddleware).get(getJoin).post(postJoin); // user
 rootRouter
   .route("/login")
